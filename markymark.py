@@ -28,11 +28,14 @@ markup = {
 } 
 
 
-def convert(in_string):
+def convert(in_string, return_to_normal=True):
     out_string = in_string
     for k, v in markup.items():
         out_string = out_string.replace("[%s]" % k, v)
         out_string = out_string.replace("[/%s]" % k, color_normal)
+
+    if return_to_normal:
+        out_string += color_normal
 
     return out_string
 
