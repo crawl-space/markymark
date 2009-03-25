@@ -49,12 +49,30 @@ markup = {
     'blink' : blink,
 } 
 
+def _rainbowize(in_string):
+    out_parts = []
+    colors = (color_red, color_yellow, color_green, color_blue, color_magenta)
+    i = 0
+    for char in in_string:
+        out_parts.append(colors[i % len(colors)] + char)
+        i += 1
+
+    return "".join(out_parts) + color_normal
 
 def convert(in_string, return_to_normal=True):
     out_string = in_string
     for k, v in markup.items():
         out_string = out_string.replace("[%s]" % k, v)
         out_string = out_string.replace("[/%s]" % k, color_normal)
+
+    parts = out_string.split("[rainbow]", 1)
+    if len(parts) == 2:
+        before = parts[0]
+        parts = parts[1].split("[/rainbow]", 1)
+        to_color = parts[0]
+        after = parts[1]
+
+        out_string = before + _rainbowize(to_color) + after
 
     if return_to_normal:
         out_string += color_normal
