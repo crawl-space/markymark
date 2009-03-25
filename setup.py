@@ -24,7 +24,7 @@
 from setuptools import setup
 
 setup(name="markymark",
-      version="0.1",
+      version="0.2",
       description="Make your console text funky!",
       author="James Bowes",
       author_email="jbowes@dangerouslyinc.com",
