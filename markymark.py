@@ -9,6 +9,8 @@ color_green = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_GREEN)
 color_blue = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_BLUE)
 color_magenta = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_MAGENTA)
 color_red = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_RED)
+color_white = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_WHITE)
+color_yellow = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_YELLOW)
 
 bold = curses.tparm(curses.tigetstr('bold'), curses.A_BOLD)
 underline = curses.tparm(curses.tigetstr('smul'), curses.A_UNDERLINE)
@@ -18,6 +20,8 @@ markup = {
     'green' : color_green,
     'blue' : color_blue,
     'magenta' : color_magenta,
+    'white' : color_white,
+    'yellow' : color_yellow,
 
     'b' : bold,
     'u' : underline,
