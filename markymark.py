@@ -35,6 +35,12 @@ def convert(in_string):
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:
+        if sys.argv[1] == "--help":
+            print "Usage: %s [--funky] [--bunch] TEXT" % sys.argv[0]
+            sys.exit(0)
+        elif sys.argv[1] in ["--funky", "--bunch"]:
+            print "TODO: implement me"
+            sys.exit(0)
         print convert(" ".join(sys.argv[1:]))
     else:
         for line in sys.stdin:
