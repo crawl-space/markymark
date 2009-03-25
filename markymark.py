@@ -61,7 +61,7 @@ def convert(in_string, return_to_normal=True):
 
     return out_string
 
-if __name__ == "__main__":
+def _main():
     import sys
     if len(sys.argv) > 1:
         if sys.argv[1] == "--help":
@@ -74,3 +74,6 @@ if __name__ == "__main__":
     else:
         for line in sys.stdin:
             sys.stdout.write(convert(line))
+
+if __name__ == "__main__":
+    _main()

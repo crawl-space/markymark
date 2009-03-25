@@ -30,4 +30,9 @@ setup(name="markymark",
       author_email="jbowes@dangerouslyinc.com",
       url="http://github.com/jbowes/markymark",
       py_modules=["markymark"],
-      )
+      entry_points={
+          'console_scripts' : [
+              'markymark = markymark:_main',
+          ],
+      }
+)
