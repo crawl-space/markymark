@@ -14,6 +14,7 @@ color_yellow = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_YELLOW)
 
 bold = curses.tparm(curses.tigetstr('bold'), curses.A_BOLD)
 underline = curses.tparm(curses.tigetstr('smul'), curses.A_UNDERLINE)
+blink = curses.tparm(curses.tigetstr('blink'), curses.A_BLINK)
 
 markup = {
     'red' : color_red,
@@ -25,6 +26,7 @@ markup = {
 
     'b' : bold,
     'u' : underline,
+    'blink' : blink,
 } 
 
 
