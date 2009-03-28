@@ -23,14 +23,31 @@
 
 from setuptools import setup
 
-setup(name="markymark",
-      version="0.2",
-      description="Make your console text funky!",
-      author="James Bowes",
-      author_email="jbowes@dangerouslyinc.com",
-      url="http://github.com/jbowes/markymark",
-      py_modules=["markymark"],
-      entry_points={
+setup(name = "markymark",
+      version = "0.3",
+      description = "Make your console text funky!",
+      author = "James Bowes",
+      author_email = "jbowes@dangerouslyinc.com",
+      url = "http://github.com/jbowes/markymark",
+      platforms = ["any"],
+      license = "MIT",
+      keywords = ["cli", "console", "text", "color", "ANSI"],
+
+      classifiers = [
+          "Development Status :: 4 - Beta",
+          "Environment :: Console",
+          "Intended Audience :: Developers",
+          "Intended Audience :: System Administrators",
+          "Intended Audience :: Other Audience",
+          "License :: OSI Approved :: MIT License",
+          "Topic :: Software Development :: Libraries",
+          "Topic :: Software Development :: User Interfaces",
+          "Topic :: Text Processing :: Markup",
+          "Topic :: Utilities",
+      ],
+
+      py_modules = ["markymark"],
+      entry_points = {
           'console_scripts' : [
               'markymark = markymark:_main',
           ],
