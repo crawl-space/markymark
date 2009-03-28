@@ -23,6 +23,9 @@
 import curses
 import re
 
+class MarkyMarkParseError(Exception):
+    pass
+
 curses.setupterm()
 
 color_normal = curses.tigetstr('sgr0')
@@ -33,7 +36,6 @@ color_red = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_RED)
 color_white = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_WHITE)
 color_yellow = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_YELLOW)
 
-# XXX these can be additive
 atr_bold = curses.tparm(curses.tigetstr('bold'), curses.A_BOLD)
 atr_underline = curses.tparm(curses.tigetstr('smul'), curses.A_UNDERLINE)
 atr_blink = curses.tparm(curses.tigetstr('blink'), curses.A_BLINK)
@@ -77,14 +79,15 @@ def convert(in_string, return_to_normal=True):
         omo = open.match(item)
         cmo = close.match(item)
         if omo:
-            if colors.has_key(omo.group(1)):
-                out_string += colors[omo.group(1)]
-                color_stack.append(omo.group(1))
-            elif attributes.has_key(omo.group(1)):
-                out_string += attributes[omo.group(1)]
-                attribute_stack.append(omo.group(1))
-            elif omo.group(1) == 'rainbow':
-                color_stack.append(omo.group(1))
+            tag = omo.group(1)
+            if colors.has_key(tag):
+                out_string += colors[tag]
+                color_stack.append(tag)
+            elif attributes.has_key(tag):
+                out_string += attributes[tag]
+                attribute_stack.append(tag)
+            elif tag == 'rainbow':
+                color_stack.append(tag)
             else:
                 # unknown tag, just ignore it and put in output
                 if len(color_stack) > 0 and color_stack[-1] == 'rainbow':
@@ -93,7 +96,8 @@ def convert(in_string, return_to_normal=True):
                 else:
                     out_string += item
         elif cmo:
-            if len(color_stack) > 0 and color_stack[-1] == cmo.group(1):
+            tag = cmo.group(1)
+            if len(color_stack) > 0 and color_stack[-1] == tag:
                 color_stack.pop()
                 if len(color_stack) == 0:
                     out_string += color_normal
@@ -102,7 +106,7 @@ def convert(in_string, return_to_normal=True):
                 elif color_stack[-1] != 'rainbow':
                     out_string += colors[color_stack[-1]]
             elif len(attribute_stack) > 0 and \
-                    attribute_stack[-1] == cmo.group(1):
+                    attribute_stack[-1] == tag:
                 attribute_stack.pop()
                 # attributes are additive, so we need to remove this one then
                 # reapply the others
@@ -112,8 +116,7 @@ def convert(in_string, return_to_normal=True):
                 if len(color_stack) > 0 and color_stack[-1] != 'rainbow':
                     out_string += colors[color_stack[-1]]
             else:
-                # XXX error
-                print "mismatched close tag"
+                raise MarkyMarkParseError("Mismatched close tag '%s'" % tag)
         else:
             if len(color_stack) > 0 and color_stack[-1] == 'rainbow':
                 (rainbowed, rainbow_mark) = _rainbowize(item, rainbow_mark)
