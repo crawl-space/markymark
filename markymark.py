@@ -36,6 +36,13 @@ color_red = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_RED)
 color_white = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_WHITE)
 color_yellow = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_YELLOW)
 
+bg_color_green = curses.tparm(curses.tigetstr('setab'), curses.COLOR_GREEN)
+bg_color_blue = curses.tparm(curses.tigetstr('setab'), curses.COLOR_BLUE)
+bg_color_magenta = curses.tparm(curses.tigetstr('setab'), curses.COLOR_MAGENTA)
+bg_color_red = curses.tparm(curses.tigetstr('setab'), curses.COLOR_RED)
+bg_color_white = curses.tparm(curses.tigetstr('setab'), curses.COLOR_WHITE)
+bg_color_yellow = curses.tparm(curses.tigetstr('setab'), curses.COLOR_YELLOW)
+
 atr_bold = curses.tparm(curses.tigetstr('bold'), curses.A_BOLD)
 atr_underline = curses.tparm(curses.tigetstr('smul'), curses.A_UNDERLINE)
 atr_blink = curses.tparm(curses.tigetstr('blink'), curses.A_BLINK)
@@ -48,6 +55,15 @@ colors = {
     'magenta' : color_magenta,
     'white' : color_white,
     'yellow' : color_yellow,
+}
+
+bg_colors = {
+    'bg:red' : bg_color_red,
+    'bg:green' : bg_color_green,
+    'bg:blue' : bg_color_blue,
+    'bg:magenta' : bg_color_magenta,
+    'bg:white' : bg_color_white,
+    'bg:yellow' : bg_color_yellow,
 }
 
 attributes = {
@@ -71,6 +87,7 @@ def convert(in_string, return_to_normal=True):
     close = re.compile('\[/(.*?)\]')
 
     color_stack = []
+    bg_color_stack = []
     attribute_stack = []
     rainbow_mark = 0
 
@@ -83,6 +100,9 @@ def convert(in_string, return_to_normal=True):
             if colors.has_key(tag):
                 out_string += colors[tag]
                 color_stack.append(tag)
+            elif bg_colors.has_key(tag):
+                out_string += bg_colors[tag]
+                bg_color_stack.append(tag)
             elif attributes.has_key(tag):
                 out_string += attributes[tag]
                 attribute_stack.append(tag)
@@ -103,8 +123,20 @@ def convert(in_string, return_to_normal=True):
                     out_string += color_normal
                     for atr in attribute_stack:
                         out_string += attributes[atr]
+                    if len(bg_color_stack) > 0:
+                        out_string += bg_colors[bg_color_stack[-1]]
                 elif color_stack[-1] != 'rainbow':
                     out_string += colors[color_stack[-1]]
+            elif len(bg_color_stack) > 0 and bg_color_stack[-1] == tag:
+                bg_color_stack.pop()
+                if len(bg_color_stack) == 0:
+                    out_string += color_normal
+                    for atr in attribute_stack:
+                        out_string += attributes[atr]
+                    if len(color_stack) > 0 and color_stack[-1] != 'rainbow':
+                        out_string += colors[color_stack[-1]]
+                else:
+                    out_string += bg_colors[bg_color_stack[-1]]
             elif len(attribute_stack) > 0 and \
                     attribute_stack[-1] == tag:
                 attribute_stack.pop()
@@ -115,6 +147,9 @@ def convert(in_string, return_to_normal=True):
                     out_string += attributes[atr]
                 if len(color_stack) > 0 and color_stack[-1] != 'rainbow':
                     out_string += colors[color_stack[-1]]
+                if len(bg_color_stack) > 0:
+                    out_string += bg_colors[bg_color_stack[-1]]
+
             else:
                 raise MarkyMarkParseError("Mismatched close tag '%s'" % tag)
         else:
