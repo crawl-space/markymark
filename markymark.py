@@ -21,6 +21,7 @@
 # THE SOFTWARE.
 
 import curses
+import re
 
 curses.setupterm()
 
@@ -32,21 +33,29 @@ color_red = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_RED)
 color_white = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_WHITE)
 color_yellow = curses.tparm(curses.tigetstr('setaf'), curses.COLOR_YELLOW)
 
-bold = curses.tparm(curses.tigetstr('bold'), curses.A_BOLD)
-underline = curses.tparm(curses.tigetstr('smul'), curses.A_UNDERLINE)
-blink = curses.tparm(curses.tigetstr('blink'), curses.A_BLINK)
+# XXX these can be additive
+atr_bold = curses.tparm(curses.tigetstr('bold'), curses.A_BOLD)
+atr_underline = curses.tparm(curses.tigetstr('smul'), curses.A_UNDERLINE)
+atr_blink = curses.tparm(curses.tigetstr('blink'), curses.A_BLINK)
+atr_normal = curses.tparm(curses.tigetstr('sgr0'), curses.A_NORMAL)
 
-markup = {
+colors = {
     'red' : color_red,
     'green' : color_green,
     'blue' : color_blue,
     'magenta' : color_magenta,
     'white' : color_white,
     'yellow' : color_yellow,
+    # XXX can't be markup
+    'normal' : color_normal,
+}
 
-    'b' : bold,
-    'u' : underline,
-    'blink' : blink,
+attributes = {
+    'b' : atr_bold,
+    'u' : atr_underline,
+    'blink' : atr_blink,
+    # XXX can't be markup
+    'normal' : atr_normal,
 } 
 
 def _rainbowize(in_string):
@@ -60,22 +69,53 @@ def _rainbowize(in_string):
     return "".join(out_parts) + color_normal
 
 def convert(in_string, return_to_normal=True):
-    out_string = in_string
-    for k, v in markup.items():
-        out_string = out_string.replace("[%s]" % k, v)
-        out_string = out_string.replace("[/%s]" % k, color_normal)
+    parts = re.split(r'(\[.*?\])', in_string)
+    open = re.compile('\[([^/].*?)\]')
+    close = re.compile('\[/(.*?)\]')
+    color_stack = []
+    color_stack.append('normal')
 
-    parts = out_string.split("[rainbow]", 1)
-    if len(parts) == 2:
-        before = parts[0]
-        parts = parts[1].split("[/rainbow]", 1)
-        to_color = parts[0]
-        after = parts[1]
+    attribute_stack = []
+    attribute_stack.append('normal')
 
-        out_string = before + _rainbowize(to_color) + after
+    out_string = ""
+    for item in parts:
+        omo = open.match(item)
+        cmo = close.match(item)
+        if omo:
+            if colors.has_key(omo.group(1)):
+                out_string += colors[omo.group(1)]
+                color_stack.append(omo.group(1))
+            elif attributes.has_key(omo.group(1)):
+                out_string += attributes[omo.group(1)]
+                attribute_stack.append(omo.group(1))
+            else:
+                # unknown tag, just ignore it and put in output
+                out_string += item
+        elif cmo:
+            if color_stack[-1] == cmo.group(1):
+                color_stack.pop()
+                out_string += colors[color_stack[-1]]
+                if len(color_stack) == 1:
+                    for atr in attribute_stack:
+                        out_string += attributes[atr]
+            elif attribute_stack[-1] == cmo.group(1):
+                attribute_stack.pop()
+                # attributes are additive, so we need to remove this one then
+                # reapply the others
+                out_string += atr_normal
+                for atr in attribute_stack:
+                    out_string += attributes[atr]
+                out_string += colors[color_stack[-1]]
+            else:
+                # XXX error
+                print "mismatched close tag"
+        else:
+            out_string += item
 
     if return_to_normal:
         out_string += color_normal
+        out_string += atr_normal
 
     return out_string
 
