@@ -54,15 +54,14 @@ attributes = {
     'blink' : atr_blink,
 } 
 
-def _rainbowize(in_string):
+def _rainbowize(in_string, i):
     out_parts = []
     colors = (color_red, color_yellow, color_green, color_blue, color_magenta)
-    i = 0
     for char in in_string:
         out_parts.append(colors[i % len(colors)] + char)
         i += 1
 
-    return "".join(out_parts) + color_normal
+    return ("".join(out_parts), i)
 
 def convert(in_string, return_to_normal=True):
     parts = re.split(r'(\[.*?\])', in_string)
@@ -71,6 +70,7 @@ def convert(in_string, return_to_normal=True):
 
     color_stack = []
     attribute_stack = []
+    rainbow_mark = 0
 
     out_string = ""
     for item in parts:
@@ -83,9 +83,15 @@ def convert(in_string, return_to_normal=True):
             elif attributes.has_key(omo.group(1)):
                 out_string += attributes[omo.group(1)]
                 attribute_stack.append(omo.group(1))
+            elif omo.group(1) == 'rainbow':
+                color_stack.append(omo.group(1))
             else:
                 # unknown tag, just ignore it and put in output
-                out_string += item
+                if len(color_stack) > 0 and color_stack[-1] == 'rainbow':
+                    (rainbowed, rainbow_mark) = _rainbowize(item, rainbow_mark)
+                    out_string += rainbowed
+                else:
+                    out_string += item
         elif cmo:
             if len(color_stack) > 0 and color_stack[-1] == cmo.group(1):
                 color_stack.pop()
@@ -93,7 +99,7 @@ def convert(in_string, return_to_normal=True):
                     out_string += color_normal
                     for atr in attribute_stack:
                         out_string += attributes[atr]
-                else:
+                elif color_stack[-1] != 'rainbow':
                     out_string += colors[color_stack[-1]]
             elif len(attribute_stack) > 0 and \
                     attribute_stack[-1] == cmo.group(1):
@@ -103,13 +109,17 @@ def convert(in_string, return_to_normal=True):
                 out_string += atr_normal
                 for atr in attribute_stack:
                     out_string += attributes[atr]
-                if len(color_stack) > 0:
+                if len(color_stack) > 0 and color_stack[-1] != 'rainbow':
                     out_string += colors[color_stack[-1]]
             else:
                 # XXX error
                 print "mismatched close tag"
         else:
-            out_string += item
+            if len(color_stack) > 0 and color_stack[-1] == 'rainbow':
+                (rainbowed, rainbow_mark) = _rainbowize(item, rainbow_mark)
+                out_string += rainbowed
+            else:
+                out_string += item
 
     if return_to_normal:
         out_string += color_normal
