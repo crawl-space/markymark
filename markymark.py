@@ -46,16 +46,12 @@ colors = {
     'magenta' : color_magenta,
     'white' : color_white,
     'yellow' : color_yellow,
-    # XXX can't be markup
-    'normal' : color_normal,
 }
 
 attributes = {
     'b' : atr_bold,
     'u' : atr_underline,
     'blink' : atr_blink,
-    # XXX can't be markup
-    'normal' : atr_normal,
 } 
 
 def _rainbowize(in_string):
@@ -72,11 +68,9 @@ def convert(in_string, return_to_normal=True):
     parts = re.split(r'(\[.*?\])', in_string)
     open = re.compile('\[([^/].*?)\]')
     close = re.compile('\[/(.*?)\]')
-    color_stack = []
-    color_stack.append('normal')
 
+    color_stack = []
     attribute_stack = []
-    attribute_stack.append('normal')
 
     out_string = ""
     for item in parts:
@@ -93,20 +87,24 @@ def convert(in_string, return_to_normal=True):
                 # unknown tag, just ignore it and put in output
                 out_string += item
         elif cmo:
-            if color_stack[-1] == cmo.group(1):
+            if len(color_stack) > 0 and color_stack[-1] == cmo.group(1):
                 color_stack.pop()
-                out_string += colors[color_stack[-1]]
-                if len(color_stack) == 1:
+                if len(color_stack) == 0:
+                    out_string += color_normal
                     for atr in attribute_stack:
                         out_string += attributes[atr]
-            elif attribute_stack[-1] == cmo.group(1):
+                else:
+                    out_string += colors[color_stack[-1]]
+            elif len(attribute_stack) > 0 and \
+                    attribute_stack[-1] == cmo.group(1):
                 attribute_stack.pop()
                 # attributes are additive, so we need to remove this one then
                 # reapply the others
                 out_string += atr_normal
                 for atr in attribute_stack:
                     out_string += attributes[atr]
-                out_string += colors[color_stack[-1]]
+                if len(color_stack) > 0:
+                    out_string += colors[color_stack[-1]]
             else:
                 # XXX error
                 print "mismatched close tag"
